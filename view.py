@@ -65,6 +65,15 @@ class View():
         else:
             return False
 
+    def get_state_checkbox_image_clearness(self):
+        if (self.ui.checkbox_image_clearness.isChecked()):
+            return 1
+        else:
+            return 0
+
+    def set_state_checkbox_image_clearness(self, state):
+        self.ui.checkbox_image_clearness.setChecked(state)
+
     def set_slider_image_play_range(self, min_value, max_value):
         self.ui.slider_image_play.setMinimum(min_value)
         self.ui.slider_image_play.setMaximum(max_value)

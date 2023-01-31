@@ -34,6 +34,7 @@ class Controller(object):
             Qt.Key_Backspace : self.exec_remove_tail_char
         }
         self.curr_frame_label_char = ""
+        self.curr_frame_clear_flag = 1
         self.ground_truth = {}
         self.ground_truth_json_name = ""
         self.image_size = 5.0
@@ -45,10 +46,12 @@ class Controller(object):
         self.view.ui.button_last_frame.clicked.connect(self.play_last_frame)
         self.view.ui.button_next_frame.clicked.connect(self.play_next_frame)
         self.view.text_label_ground_truth.key_connect(self.label_key_event)
+        self.view.ui.checkbox_image_clearness.stateChanged.connect(self.clearness_change)
         # self.label_key_event self.view.ui.text_label_ground_truth.keyPressEvent
 
-    def label_key_event(self, ev:PySide2.QtGui.QKeyEvent):
+    def label_key_event(self, ev : PySide2.QtGui.QKeyEvent):
         key = ev.key()
+
         if key in self.key_func_map.keys():
             self.key_func_map[key]()
         else:
@@ -58,6 +61,9 @@ class Controller(object):
 
         self.view.set_text_label_ground_truth(self.curr_frame_label_char)
         self.update_ground_truth()
+
+    def clearness_change(self):
+        self.curr_frame_clear_flag = self.view.get_state_checkbox_image_clearness()
 
     def exec_remove_tail_char(self):
         if self.curr_frame_label_char != "":
@@ -76,7 +82,7 @@ class Controller(object):
         self.update_special_frame_state(self.model.curr_image_index)
 
     def exec_clear_confirm(self):
-        print(1)
+        self.view.set_state_checkbox_image_clearness(not self.curr_frame_clear_flag)
 
     def exec_image_up(self):
         self.image_size += 0.5
@@ -90,14 +96,15 @@ class Controller(object):
 
     def update_ground_truth(self):
         key = self.model.image_list[self.model.curr_image_index]
-        self.ground_truth[key] = self.curr_frame_label_char
+        self.curr_frame_clear_flag = self.view.get_state_checkbox_image_clearness()
+        self.ground_truth[key] = [self.curr_frame_label_char, self.curr_frame_clear_flag]
 
     def get_curr_ground_truth(self, value):
         key = self.model.image_list[value]
         return self.ground_truth[key]
 
     def image_slider_change(self, value):
-        self.curr_frame_label_char = self.get_curr_ground_truth(value)
+        self.curr_frame_label_char, self.curr_frame_clear_flag = self.get_curr_ground_truth(value)
         self.update_special_frame_state(value)
         self.save_ground_truth()
 
@@ -137,13 +144,14 @@ class Controller(object):
         self.view.set_slider_image_play_value(self.model.curr_image_index)
         self.view.set_image_ratio_value(self.image_size)
         self.view.set_text_label_ground_truth(self.curr_frame_label_char)
+        self.view.set_state_checkbox_image_clearness(self.curr_frame_clear_flag)
 
     def choose_image(self):
-        # image_path = choose_folder(self.view.ui, "选择image文件夹", self.model.image_path)
-        # if not image_path :
-        #     return
+        image_path = choose_folder(self.view.ui, "选择image文件夹", self.model.image_path)
+        if not image_path :
+            return
 
-        image_path = "/home/uisee/MainDisk/Develop/cv_uos/install/data/light_number_patch"
+        # image_path = "/home/uisee/MainDisk/Develop/cv_uos/install/data/light_number_patch"
         self.model.check_image_path(image_path)
         filename = os.path.split(image_path)[1]
         self.ground_truth_json_name = os.path.join(image_path, filename + ".json")
@@ -153,7 +161,7 @@ class Controller(object):
         else:
             self.ground_truth = {}
             for x in self.model.image_list:
-                self.ground_truth[x] = ""
+                self.ground_truth[x] = ["", 1]
 
         self.view.update_image_path(image_path)
         self.view.set_slider_image_play_range(0, self.model.image_cnt - 1)
