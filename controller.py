@@ -21,6 +21,7 @@ class Controller(object):
         self.view = View()
         # apply_stylesheet(self.view.ui, "dark_blue.xml")
         self.model = Model()
+        self.view.set_slider_image_play_range(0, 0)
         self.image_play_timer = QTimer()
         self.image_play_timer.timeout.connect(self.image_play)
         self.signal_connect()
@@ -38,6 +39,7 @@ class Controller(object):
         self.ground_truth = {}
         self.ground_truth_json_name = ""
         self.image_size = 5.0
+
 
     def signal_connect(self):
         self.view.ui.button_choose_image.clicked.connect(self.choose_image)
@@ -110,7 +112,8 @@ class Controller(object):
 
 
     def save_ground_truth(self):
-        write_json(self.ground_truth, self.ground_truth_json_name)
+        if (self.model.file_image_state):
+            write_json(self.ground_truth, self.ground_truth_json_name)
 
     def image_auto_play(self):
         flag = self.view.get_state_image_auto_play()
@@ -134,17 +137,18 @@ class Controller(object):
         self.update_img_ui_state()
 
     def update_img_ui_state(self):
-        self.curr_image_path, unix_time, bj_time, img = \
-                    self.model.get_curr_frame_image_info()
+        if (self.model.file_image_state):
+            self.curr_image_path, unix_time, bj_time, img = \
+                        self.model.get_curr_frame_image_info()
 
-        self.view.update_cv_image(self.curr_image_path, self.image_size)
-        self.view.update_label_unix_time(unix_time)
-        self.view.update_label_beijing_time(bj_time)
-        self.view.update_text_curr_image_frame(self.model.curr_image_index, self.model.image_cnt)
-        self.view.set_slider_image_play_value(self.model.curr_image_index)
-        self.view.set_image_ratio_value(self.image_size)
-        self.view.set_text_label_ground_truth(self.curr_frame_label_char)
-        self.view.set_state_checkbox_image_clearness(self.curr_frame_clear_flag)
+            self.view.update_cv_image(self.curr_image_path, self.image_size)
+            self.view.update_label_unix_time(unix_time)
+            self.view.update_label_beijing_time(bj_time)
+            self.view.update_text_curr_image_frame(self.model.curr_image_index, self.model.image_cnt-1)
+            self.view.set_slider_image_play_value(self.model.curr_image_index)
+            self.view.set_image_ratio_value(self.image_size)
+            self.view.set_text_label_ground_truth(self.curr_frame_label_char)
+            self.view.set_state_checkbox_image_clearness(self.curr_frame_clear_flag)
 
     def choose_image(self):
         image_path = choose_folder(self.view.ui, "选择image文件夹", self.model.image_path)
@@ -157,7 +161,7 @@ class Controller(object):
         self.ground_truth_json_name = os.path.join(image_path, filename + ".json")
 
         if os.path.exists(self.ground_truth_json_name):
-            self.ground_truth = parse_json(self.ground_truth_json_name)
+            self.ground_truth = fast_parse_json(self.ground_truth_json_name)
         else:
             self.ground_truth = {}
             for x in self.model.image_list:
