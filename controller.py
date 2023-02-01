@@ -40,6 +40,12 @@ class Controller(object):
         self.ground_truth_json_name = ""
         self.image_size = 5.0
 
+        # for update log info
+        self.Timer = QTimer()
+        self.Timer.start(100)
+        self.Timer.timeout.connect(self.monitor_timer)
+
+
 
     def signal_connect(self):
         self.view.ui.button_choose_image.clicked.connect(self.choose_image)
@@ -108,7 +114,6 @@ class Controller(object):
     def image_slider_change(self, value):
         self.curr_frame_label_char, self.curr_frame_clear_flag = self.get_curr_ground_truth(value)
         self.update_special_frame_state(value)
-        self.save_ground_truth()
 
 
     def save_ground_truth(self):
@@ -175,7 +180,20 @@ class Controller(object):
     def run(self):
         self.view.show()
         self.app.exec_()
+        self.Timer.stop()
         self.save_ground_truth()
+
+    def sigint_handler(self, signum = None, frame = None):
+        import sys
+        self.Timer.stop()
+        sys.exit(self.app.exec_())
+
+
+    def monitor_timer(self):
+        self.save_ground_truth()
+
+
+
 
 
 if __name__ == "__main__":
