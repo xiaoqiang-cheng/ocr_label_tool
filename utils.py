@@ -2,7 +2,6 @@ from PySide2.QtWidgets import QFileDialog
 import re
 
 import json
-import json5
 import os
 
 
@@ -13,40 +12,6 @@ comment_re = re.compile(
     '(^)?[^\S\n]*/(?:\*(.*?)\*/[^\S\n]*|/[^\n]*)($)?',
     re.DOTALL | re.MULTILINE
 )
-def parse_json(filename):
-    # start = time.time()
-    """ Parse a JSON file
-        First remove comments and then use the json module package
-        Comments look like :
-            // ...
-        or
-            /*
-            ...
-            */
-    """
-    # print(filename)
-    with open(filename, 'r', encoding="utf-8", errors='ignore') as f:
-    #     # content = f.readlines()
-    #     # print(content)
-        content = ''.join(f.readlines())
-        ## Looking for comments
-        # match = comment_re.search(content)
-        # while match:
-        #     # single line comment
-        #     content = content[:match.start()] + content[match.end():]
-        #     match = comment_re.search(content)
-        # Return json file
-    # print(filename, time.time()-start)
-    # f=open(filename,'rb')
-    # f_read=f.read()
-    # import ipdb
-    # ipdb.set_trace()
-    # f_chaInfo=chardet.detect(f_read)
-    # final_data=f_read.decode(f_chaInfo['encoding'], errors='ignore')
-    # f.close()
-    # content = ''.join(final_data)
-    return json5.loads(content)
-
 
 
 def fast_parse_json(filename):

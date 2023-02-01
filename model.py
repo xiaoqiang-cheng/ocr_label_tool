@@ -1,7 +1,7 @@
 import os
 from utils import *
 import time
-import cv2
+
 class Model:
     def __init__(self):
         self.image_path = "."
